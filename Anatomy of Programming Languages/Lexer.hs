@@ -35,3 +35,6 @@ lexer symbols keywords str = lex str where
             else TokenIdent first
 
 happyError t = error ("Parse error at " ++ show t ++ "\n")
+
+x = 5
+y = x + 3.1

@@ -1,2 +1,6 @@
 *.hi
 *.o
+*~
+*.lock
+.stack-work
+score.json

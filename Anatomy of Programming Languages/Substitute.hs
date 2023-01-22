@@ -9,7 +9,7 @@ data Exp  = Number    Int
           | Variable  String        -- added
    deriving (Eq, Show)
 
-substitute1:: (String, Int) -> Exp -> Exp
+substitute1 :: (String, Int) -> Exp -> Exp
 substitute1 (var, val) exp = subst exp where
   subst (Number i)      = Number i
   subst (Add a b)       = Add (subst a) (subst b)
