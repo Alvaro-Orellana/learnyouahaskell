@@ -16,7 +16,10 @@ import Data.List
 -- Hint! pattern matching is your friend.
 
 binomial :: Integer -> Integer -> Integer
-binomial = todo
+binomial _ 0 = 1
+binomial 0 k 
+        | k > 0 = 0
+binomial n k = binomial(n-1) k + binomial(n-1) (k-1)
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the odd factorial function. Odd factorial is like
@@ -27,7 +30,11 @@ binomial = todo
 --   oddFactorial 6 ==> 5*3*1 ==> 15
 
 oddFactorial :: Integer -> Integer
-oddFactorial = todo
+oddFactorial 1 = 1
+oddFactorial n = if odd n 
+                 then n * oddFactorial (n-1)
+                 else oddFactorial (n-1)
+      
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the Euclidean Algorithm for finding the greatest
@@ -59,7 +66,11 @@ oddFactorial = todo
 -- * https://en.wikipedia.org/wiki/Euclidean_algorithm
 
 myGcd :: Integer -> Integer -> Integer
-myGcd = todo
+myGcd 0 b = b
+myGcd a 0 = a
+myGcd a b = if a < b then myGcd a (b-a) 
+            else myGcd (a-b) b
+        
 
 ------------------------------------------------------------------------------
 -- Ex 4: Implement the function leftpad which adds space characters
@@ -75,8 +86,10 @@ myGcd = todo
 -- * you can compute the length of a string with the length function
 
 leftpad :: String -> Int -> String
-leftpad = todo
-
+leftpad string n 
+            | length string >= n = string
+            | otherwise = leftpad (" " ++ string) n
+               
 ------------------------------------------------------------------------------
 -- Ex 5: let's make a countdown for a rocket! Given a number, you
 -- should produce a string that says "Ready!", counts down from the
@@ -91,8 +104,11 @@ leftpad = todo
 -- * you'll probably need a recursive helper function
 
 countdown :: Integer -> String
-countdown = todo
-
+countdown n = "Ready! " ++ backwardsCounter n ++ "Liftoff!"
+    where backwardsCounter n 
+            | n > 0 = show n ++ "... " ++ backwardsCounter (n-1)
+            | otherwise = ""
+            
 ------------------------------------------------------------------------------
 -- Ex 6: implement the function smallestDivisor that returns the
 -- smallest number (greater than 1) that divides the given number evenly.
@@ -109,7 +125,8 @@ countdown = todo
 -- Hint: remember the mod function!
 
 smallestDivisor :: Integer -> Integer
-smallestDivisor = todo
+smallestDivisor n = head $ filter (\x -> n `mod` x == 0) [2..n]
+                
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a function isPrime that checks if the given number
@@ -118,8 +135,9 @@ smallestDivisor = todo
 -- Ps. 0 and 1 are not prime numbers
 
 isPrime :: Integer -> Bool
-isPrime = todo
-
+isPrime 0 = False
+isPrime 1 = False
+isPrime n = n == (smallestDivisor n)
 ------------------------------------------------------------------------------
 -- Ex 8: implement a function biggestPrimeAtMost that returns the
 -- biggest prime number that is less than or equal to the given
@@ -133,4 +151,6 @@ isPrime = todo
 --   biggestPrimeAtMost 10 ==> 7
 
 biggestPrimeAtMost :: Integer -> Integer
-biggestPrimeAtMost = todo
+biggestPrimeAtMost n 
+                | isPrime n = n
+                | otherwise = biggestPrimeAtMost (n-1)
