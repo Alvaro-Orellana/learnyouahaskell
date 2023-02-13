@@ -315,3 +315,4 @@ interpreter xs = evaluate (0,0) xs
                 | x == "right"  = evaluate (a+1, b) xs
                 | x == "printX" = [show a] ++ evaluate (a, b) xs
                 | x == "printY" = [show b] ++ evaluate (a, b) xs
+                
