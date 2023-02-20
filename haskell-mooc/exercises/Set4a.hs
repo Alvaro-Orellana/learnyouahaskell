@@ -54,11 +54,7 @@ allEqual (x:y:xs)
 --   distinct [1,2] ==> True
 
 distinct :: Eq a => [a] -> Bool
-distinct []  = True
-distinct [x] = True
-distinct (x:y:xs)
-    | x == y    = False
-    | otherwise =  distinct (y:xs)
+distinct xs =  xs == nub xs
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function middle that returns the middle value
 -- (not the smallest or the largest) out of its three arguments.
@@ -70,7 +66,12 @@ distinct (x:y:xs)
 --   middle 'b' 'a' 'c'  ==> 'b'
 --   middle 1 7 3        ==> 3
 
-middle = todo
+-- First finds the max out of the 3, then the middle one will be the max of the remaining 2
+middle :: Ord a => a -> a -> a -> a 
+middle x y z 
+    | max x y == max x z = max y z -- x is max of the 3
+    | max y x == max y z = max x z -- y is max of the 3
+    | otherwise          = max x y -- z is max of the 3
 
 ------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
@@ -85,8 +86,8 @@ middle = todo
 --   rangeOf [4,2,1,3]          ==> 3
 --   rangeOf [1.5,1.0,1.1,1.2]  ==> 0.5
 
-rangeOf :: [a] -> a
-rangeOf = todo
+rangeOf :: (Num a, Ord a) => [a] -> a
+rangeOf xs = maximum xs - minimum xs
 
 ------------------------------------------------------------------------------
 -- Ex 5: given a (non-empty) list of (non-empty) lists, return the longest
@@ -104,7 +105,13 @@ rangeOf = todo
 --   longest [[1,2,3],[4,5],[6]] ==> [1,2,3]
 --   longest ["bcd","def","ab"] ==> "bcd"
 
+longest :: Ord a => [[a]] -> [a]
+-- longest lists = filter (\x -> length x == ) (sortByLength list)
 longest = todo
+
+-- sorts lists by their length
+sortByLength :: [[a]] -> [[a]]
+sortByLength = sortBy (comparing length)
 
 ------------------------------------------------------------------------------
 -- Ex 6: Implement the function incrementKey, that takes a list of
@@ -120,8 +127,11 @@ longest = todo
 --   incrementKey True [(True,1),(False,3),(True,4)] ==> [(True,2),(False,3),(True,5)]
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
-incrementKey :: k -> [(k,v)] -> [(k,v)]
-incrementKey = todo
+incrementKey :: (Eq k, Num v) => k -> [(k,v)] -> [(k,v)]
+incrementKey _ [] = []
+incrementKey key ((k,v):xs) 
+    | key == k  = (k,v + 1) : incrementKey key xs
+    | otherwise = (k,v)     : incrementKey key xs
 
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
@@ -136,7 +146,7 @@ incrementKey = todo
 -- length to a Fractional
 
 average :: Fractional a => [a] -> a
-average xs = todo
+average xs = sum xs / (fromIntegral (length xs))
 
 ------------------------------------------------------------------------------
 -- Ex 8: given a map from player name to score and two players, return
@@ -155,7 +165,11 @@ average xs = todo
 --     ==> "Lisa"
 
 winner :: Map.Map String Int -> String -> String -> String
-winner scores player1 player2 = todo
+winner scores player1 player2
+    | player1Score >= player2Score = player1
+    | otherwise = player2
+        where player1Score = Map.findWithDefault 0 player1 scores
+              player2Score = Map.findWithDefault 0 player2 scores
 
 ------------------------------------------------------------------------------
 -- Ex 9: compute how many times each value in the list occurs. Return
