@@ -106,10 +106,14 @@ rangeOf xs = maximum xs - minimum xs
 --   longest ["bcd","def","ab"] ==> "bcd"
 
 longest :: Ord a => [[a]] -> [a]
--- longest lists = filter (\x -> length x == ) (sortByLength list)
-longest = todo
+longest lists = last (sortBy go lists)
+        where go x y 
+                | (length x == length y) = if head x < head y then GT else LT
+                | otherwise = compare (length x) (length y)
+      
 
--- sorts lists by their length
+
+
 sortByLength :: [[a]] -> [[a]]
 sortByLength = sortBy (comparing length)
 
@@ -184,7 +188,10 @@ winner scores player1 player2
 --     ==> Map.fromList [(False,3),(True,1)]
 
 freqs :: (Eq a, Ord a) => [a] -> Map.Map a Int
-freqs xs = todo
+freqs xs = foldr updateMap Map.empty xs
+        where updateMap x map = case Map.lookup x map of
+                    Nothing    -> Map.insert x 1 map
+                    Just value -> Map.insert x (value+1) map
 
 ------------------------------------------------------------------------------
 -- Ex 10: recall the withdraw example from the course material. Write a
@@ -212,7 +219,13 @@ freqs xs = todo
 --     ==> fromList [("Bob",100),("Mike",50)]
 
 transfer :: String -> String -> Int -> Map.Map String Int -> Map.Map String Int
-transfer from to amount bank = todo
+transfer from to amount bank 
+    | (Map.notMember from bank) || (Map.notMember to bank) = bank 
+    | amount < 0                                           = bank
+    | otherwise = case Map.lookup from bank of 
+            Nothing     -> bank
+            Just balance ->  if balance < amount then bank
+                             else Map.adjust (\x -> x-amount) from (Map.adjust (\x -> x+amount) to  bank)
 
 ------------------------------------------------------------------------------
 -- Ex 11: given an Array and two indices, swap the elements in the indices.
@@ -222,7 +235,7 @@ transfer from to amount bank = todo
 --         ==> array (1,4) [(1,"one"),(2,"three"),(3,"two"),(4,"four")]
 
 swap :: Ix i => i -> i -> Array i a -> Array i a
-swap i j arr = todo
+swap i j arr = arr // [(i, arr ! j), (j, arr ! i)]
 
 ------------------------------------------------------------------------------
 -- Ex 12: given an Array, find the index of the largest element. You
@@ -233,4 +246,7 @@ swap i j arr = todo
 -- Hint: check out Data.Array.indices or Data.Array.assocs
 
 maxIndex :: (Ix i, Ord a) => Array i a -> i
-maxIndex = todo
+-- maxIndex array = fst $ foldr (max . snd) (snd $ head assocsList) assocsList
+--    where assocsList = Data.Array.assocs array
+maxIndex array = fst (last (sortBy (comparing snd) assocsList))
+        where assocsList = Data.Array.assocs array 
