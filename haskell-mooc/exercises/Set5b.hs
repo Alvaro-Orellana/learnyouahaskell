@@ -160,7 +160,10 @@ isOrdered Empty = True
 isOrdered (Node val (Node val2 l1 r1) (Node val3 l2 r2))
     | val2 <= val && val3 >= val = isOrdered (Node val2 l1 r1) && isOrdered (Node val3 l2 r2)
     | otherwise = False
+isOrdered (Node val (Node val2 l1 r1) Empty) = val2 < val && isOrdered (Node val2 l1 r1)
+isOrdered (Node val Empty (Node val2 l1 r1)) = val2 > val && isOrdered (Node val2 l1 r1)
 isOrdered _ = True
+  
  
 
 ------------------------------------------------------------------------------
@@ -205,7 +208,15 @@ walk (x:xs) (Node a l r) = case x of
 --   set [StepL,StepR] 1 (Node 0 Empty Empty)  ==>  (Node 0 Empty Empty)
 
 set :: [Step] -> a -> Tree a -> Tree a
-set path val tree = todo
+set [] val (Node a l r) = Node val l r
+set path val Empty = Empty
+set (x:xs) val (Node a l r) = case x of
+    StepL -> (Node a left r)
+    StepR -> (Node a l right)
+    where left  = set xs val l
+          right = set xs val r
+
+
 
 ------------------------------------------------------------------------------
 -- Ex 10: given a value and a tree, return a path that goes from the
@@ -221,4 +232,13 @@ set path val tree = todo
 --                    (Node 5 Empty Empty))                     ==>  Just [StepL,StepR]
 
 search :: Eq a => a -> Tree a -> Maybe [Step]
-search = todo
+search val Empty = Nothing
+search val (Node a l r)
+  | val == a = Just []
+  | otherwise =  case search val l of
+                  Just xs -> Just (StepL:xs)
+                  Nothing ->  case search val r of
+                                Just xs -> Just (StepR:xs)
+                                Nothing -> Nothing
+                  
+
