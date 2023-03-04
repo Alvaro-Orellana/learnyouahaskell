@@ -13,7 +13,10 @@ data Country = Finland | Switzerland | Norway
   deriving Show
 
 instance Eq Country where
-  (==) = todo
+  Finland     == Finland     = True
+  Switzerland == Switzerland = True
+  Norway      == Norway      = True
+  _           == _           = False
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement an Ord instance for Country so that
@@ -22,10 +25,10 @@ instance Eq Country where
 -- Remember minimal complete definitions!
 
 instance Ord Country where
-  compare = todo -- implement me?
-  (<=) = todo -- and me?
-  min = todo -- and me?
-  max = todo -- and me?
+  Finland <= Norway      = True
+  Finland <= Switzerland = True
+  Norway  <= Switzerland = True
+  x <= y                 = if x == y then True else False  
 
 ------------------------------------------------------------------------------
 -- Ex 3: Implement an Eq instance for the type Name which contains a String.
@@ -41,7 +44,7 @@ data Name = Name String
   deriving Show
 
 instance Eq Name where
-  (==) = todo
+  Name a == Name b = map toLower a == map toLower b
 
 ------------------------------------------------------------------------------
 -- Ex 4: here is a list type parameterized over the type it contains.
@@ -55,7 +58,9 @@ data List a = Empty | LNode a (List a)
   deriving Show
 
 instance Eq a => Eq (List a) where
-  (==) = todo
+  Empty == Empty                = True
+  LNode x rest == LNode y rest' = x == y && rest == rest'
+  _ == _                        = False
 
 ------------------------------------------------------------------------------
 -- Ex 5: below you'll find two datatypes, Egg and Milk. Implement a
@@ -75,6 +80,16 @@ data Egg = ChickenEgg | ChocolateEgg
 data Milk = Milk Int -- amount in litres
   deriving Show
 
+class Price a where
+  price :: a -> Int
+
+instance Price Egg where
+  price ChickenEgg   = 20
+  price ChocolateEgg = 30
+
+instance Price Milk where
+  price (Milk litres) = 15 * litres
+
 
 ------------------------------------------------------------------------------
 -- Ex 6: define the necessary instance hierarchy in order to be able
@@ -84,6 +99,14 @@ data Milk = Milk Int -- amount in litres
 -- price [Milk 1, Milk 2]  ==> 45
 -- price [Just ChocolateEgg, Nothing, Just ChickenEgg]  ==> 50
 -- price [Nothing, Nothing, Just (Milk 1), Just (Milk 2)]  ==> 45
+
+instance Price a => Price (Maybe a) where
+  price Nothing  = 0
+  price (Just x) = price x
+
+instance Price a => Price [a] where
+  price [] = 0
+  price (x:xs) = price x + price xs
 
 
 ------------------------------------------------------------------------------
@@ -96,6 +119,11 @@ data Milk = Milk Int -- amount in litres
 data Number = Finite Integer | Infinite
   deriving (Show,Eq)
 
+instance Ord Number where
+  Finite x <= Finite y = x <= y
+  Finite _  <= Infinite = True
+  Infinite <= Finite _ = False
+  Infinite <= Infinite = True
 
 ------------------------------------------------------------------------------
 -- Ex 8: rational numbers have a numerator and a denominator that are
