@@ -28,7 +28,7 @@ instance Ord Country where
   Finland <= Norway      = True
   Finland <= Switzerland = True
   Norway  <= Switzerland = True
-  x <= y                 = if x == y then True else False  
+  x <= y           = if x == y then True else False  
 
 ------------------------------------------------------------------------------
 -- Ex 3: Implement an Eq instance for the type Name which contains a String.
@@ -121,9 +121,8 @@ data Number = Finite Integer | Infinite
 
 instance Ord Number where
   Finite x <= Finite y = x <= y
-  Finite _  <= Infinite = True
   Infinite <= Finite _ = False
-  Infinite <= Infinite = True
+  _        <= Infinite = True
 
 ------------------------------------------------------------------------------
 -- Ex 8: rational numbers have a numerator and a denominator that are
@@ -149,7 +148,7 @@ data RationalNumber = RationalNumber Integer Integer
   deriving Show
 
 instance Eq RationalNumber where
-  p == q = todo
+  RationalNumber num dem == RationalNumber num' dem' = num * dem' == dem * num'
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement the function simplify, which simplifies a rational
@@ -169,7 +168,8 @@ instance Eq RationalNumber where
 -- Hint: Remember the function gcd?
 
 simplify :: RationalNumber -> RationalNumber
-simplify p = todo
+simplify (RationalNumber num dem) = RationalNumber (num `div` commonFactor) (dem `div` commonFactor)
+    where commonFactor = gcd num dem 
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the typeclass Num for RationalNumber. The results
@@ -190,12 +190,18 @@ simplify p = todo
 --   signum (RationalNumber 0 2)             ==> RationalNumber 0 1
 
 instance Num RationalNumber where
-  p + q = todo
-  p * q = todo
-  abs q = todo
-  signum q = todo
-  fromInteger x = todo
-  negate q = todo
+  p + q =  (RationalNumber (num + num') (dem + dem'))
+    where RationalNumber num  dem  = simplify p
+          RationalNumber num' dem' = simplify q
+  
+  p * q = simplify (RationalNumber (num * num') (dem * dem'))
+    where RationalNumber num  dem  = simplify p
+          RationalNumber num' dem' = simplify q
+ 
+  abs (RationalNumber num  dem)    = RationalNumber (abs num) (abs dem)
+  signum (RationalNumber num  dem) = if num < 0 || dem < 0 then -1 else 1
+  fromInteger x = RationalNumber x 1
+  negate (RationalNumber num  dem) = (RationalNumber (0-num)  dem)
 
 ------------------------------------------------------------------------------
 -- Ex 11: a class for adding things. Define a class Addable with a
@@ -209,6 +215,18 @@ instance Num RationalNumber where
 --   add 1 zero             ==>  1
 --   add [1,2] [3,4]        ==>  [1,2,3,4]
 --   add zero [True,False]  ==>  [True,False]
+
+class Addable a where
+  zero :: a 
+  add  :: a -> a -> a
+
+instance Addable Integer where
+  zero    = 0
+  add a b = a + b
+
+instance Addable [a] where 
+  zero      = []
+  add xs ys = xs ++ ys
 
 
 ------------------------------------------------------------------------------
@@ -241,3 +259,20 @@ data Color = Red | Green | Blue
 data Suit = Club | Spade | Diamond | Heart
   deriving (Show, Eq)
 
+class Cycle a where
+  step :: a -> a
+  
+  stepMany :: Int -> a -> a
+  stepMany 0 x = x
+  stepMany n x = stepMany (n - 1) (step x)
+
+instance Cycle Color where
+  step Red   = Green
+  step Green = Blue
+  step Blue  = Red
+
+instance Cycle Suit where
+  step Club    = Spade
+  step Spade   = Diamond
+  step Diamond = Heart
+  step Heart   = Club
