@@ -190,9 +190,10 @@ simplify (RationalNumber num dem) = RationalNumber (num `div` commonFactor) (dem
 --   signum (RationalNumber 0 2)             ==> RationalNumber 0 1
 
 instance Num RationalNumber where
-  p + q =  (RationalNumber (num + num') (dem + dem'))
-    where RationalNumber num  dem  = simplify p
-          RationalNumber num' dem' = simplify q
+  (RationalNumber num  dem) + (RationalNumber num' dem') = simplify (RationalNumber numerator denominator)
+    where numerator   = (num * dem') + (num' * dem)
+          denominator = dem * dem'
+  
   
   p * q = simplify (RationalNumber (num * num') (dem * dem'))
     where RationalNumber num  dem  = simplify p
