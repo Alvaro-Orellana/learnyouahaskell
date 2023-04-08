@@ -26,11 +26,11 @@ data Velocity = Velocity Double
 
 -- velocity computes a velocity given a distance and a time
 velocity :: Distance -> Time -> Velocity
-velocity = todo
+velocity (Distance d) (Time t) = Velocity (d/t)
 
 -- travel computes a distance given a velocity and a time
 travel :: Velocity -> Time -> Distance
-travel = todo
+travel (Velocity v) (Time t) = Distance (v * t)
 
 ------------------------------------------------------------------------------
 -- Ex 2: let's implement a simple Set datatype. A Set is a list of
@@ -49,15 +49,17 @@ data Set a = Set [a]
 
 -- emptySet is a set with no elements
 emptySet :: Set a
-emptySet = todo
+emptySet = Set []
 
 -- member tests if an element is in a set
 member :: Eq a => a -> Set a -> Bool
-member = todo
+member x (Set (xs)) = elem x xs
 
 -- add a member to a set
-add :: a -> Set a -> Set a
-add = todo
+add :: Ord a => a -> Set a -> Set a
+add x (Set xs)
+  | member x (Set xs) = (Set xs)
+  | otherwise         = Set (sort (x:xs))
 
 ------------------------------------------------------------------------------
 -- Ex 3: a state machine for baking a cake. The type Event represents
@@ -92,10 +94,36 @@ add = todo
 data Event = AddEggs | AddFlour | AddSugar | Mix | Bake
   deriving (Eq,Show)
 
-data State = Start | Error | Finished
+data State = Start | Adding | AddingFlour | AddingSugar | Mixing | Baking | Error | Finished
   deriving (Eq,Show)
 
-step = todo
+step :: State -> Event -> State
+step Finished _         = Finished
+step Error    _         = Error
+step Start event 
+    | event == AddEggs = Adding
+    | otherwise        = Error
+
+step Adding event 
+    | event == AddFlour = AddingSugar
+    | event == AddSugar = AddingFlour
+    | otherwise         = Error
+
+step AddingFlour event
+    | event == AddFlour = Mixing
+    | otherwise         = Error
+
+step AddingSugar event
+    | event == AddSugar = Mixing
+    | otherwise         = Error
+
+step Mixing event
+    | event == Mix = Baking
+    | otherwise    = Error
+
+step Baking event 
+    | event == Bake = Finished
+    | otherwise     = Error
 
 -- do not edit this
 bake :: [Event] -> State
@@ -114,8 +142,11 @@ bake events = go Start events
 --   average (1.0 :| [])  ==>  1.0
 --   average (1.0 :| [2.0,3.0])  ==>  2.0
 
-average :: Fractional a => NonEmpty a -> a
+--average :: Fractional a => NonEmpty a -> a
+--average (x :| []) = x
 average = todo
+--average (x :| xs) = truncate $ sum xs `div` fromIntegral (length xs)
+
 
 ------------------------------------------------------------------------------
 -- Ex 5: reverse a NonEmpty list.
@@ -123,7 +154,7 @@ average = todo
 -- PS. The Data.List.NonEmpty type has been imported for you
 
 reverseNonEmpty :: NonEmpty a -> NonEmpty a
-reverseNonEmpty = todo
+reverseNonEmpty (x :| xs) = (x :| reverse xs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: implement Semigroup instances for the Distance, Time and
@@ -166,19 +197,26 @@ reverseNonEmpty = todo
 
 data Operation1 = Add1 Int Int
                 | Subtract1 Int Int
+                | Multiply1 Int Int
   deriving Show
 
 compute1 :: Operation1 -> Int
 compute1 (Add1 i j) = i+j
 compute1 (Subtract1 i j) = i-j
+compute1 (Multiply1 i j) = i*j
 
 show1 :: Operation1 -> String
-show1 = todo
+show1 (Add1 x y) = show x ++ "+" ++ show y
+show1 (Subtract1 x y) = show x ++ "-" ++ show y
+show1 (Multiply1 x y) = show x ++ "*" ++ show y
 
 data Add2 = Add2 Int Int
   deriving Show
 data Subtract2 = Subtract2 Int Int
   deriving Show
+data Multiply2 = Multiply2 Int Int
+  deriving Show
+
 
 class Operation2 op where
   compute2 :: op -> Int
@@ -188,6 +226,12 @@ instance Operation2 Add2 where
 
 instance Operation2 Subtract2 where
   compute2 (Subtract2 i j) = i-j
+
+instance Operation2 Multiply2 where
+  compute2 (Multiply2 i j) = i*j
+
+show2 :: Operation2 op => op -> String
+show2 op = show (compute2 op)
 
 
 ------------------------------------------------------------------------------
