@@ -142,11 +142,9 @@ bake events = go Start events
 --   average (1.0 :| [])  ==>  1.0
 --   average (1.0 :| [2.0,3.0])  ==>  2.0
 
---average :: Fractional a => NonEmpty a -> a
---average (x :| []) = x
-average = todo
---average (x :| xs) = truncate $ sum xs `div` fromIntegral (length xs)
-
+average :: Fractional a => NonEmpty a -> a
+average (x :| []) = x
+average (x :| xs) = (sum xs + x) / fromIntegral (length xs + 1)
 
 ------------------------------------------------------------------------------
 -- Ex 5: reverse a NonEmpty list.
@@ -154,8 +152,10 @@ average = todo
 -- PS. The Data.List.NonEmpty type has been imported for you
 
 reverseNonEmpty :: NonEmpty a -> NonEmpty a
-reverseNonEmpty (x :| xs) = (x :| reverse xs)
-
+reverseNonEmpty (x :| []) = (x :| [])
+reverseNonEmpty (x :| xs) = (head reversedList :| tail reversedList ++ [x])
+  where reversedList = reverse xs
+  
 ------------------------------------------------------------------------------
 -- Ex 6: implement Semigroup instances for the Distance, Time and
 -- Velocity types from exercise 1. The instances should perform
@@ -165,8 +165,14 @@ reverseNonEmpty (x :| xs) = (x :| reverse xs)
 --
 -- velocity (Distance 50 <> Distance 10) (Time 1 <> Time 2)
 --    ==> Velocity 20
+instance Semigroup Distance where
+  (Distance a) <> (Distance b) = Distance(a+b)
+ 
+instance Semigroup Time where
+  (Time a) <> (Time b) = Time(a+b)
 
-
+instance Semigroup Velocity where
+  (Velocity a) <> (Velocity b) = Velocity(a+b)
 ------------------------------------------------------------------------------
 -- Ex 7: implement a Monoid instance for the Set type from exercise 2.
 -- The (<>) operation should be the union of sets.
@@ -175,6 +181,11 @@ reverseNonEmpty (x :| xs) = (x :| reverse xs)
 --
 -- What are the class constraints for the instances?
 
+instance Ord a => Semigroup (Set a) where
+  (Set xs) <> (Set ys) = Set (sort (union xs ys))
+
+instance Ord a => Monoid (Set a) where
+  mempty = emptySet
 
 ------------------------------------------------------------------------------
 -- Ex 8: below you'll find two different ways of representing
@@ -220,19 +231,19 @@ data Multiply2 = Multiply2 Int Int
 
 class Operation2 op where
   compute2 :: op -> Int
+  show2 :: op -> String
 
 instance Operation2 Add2 where
   compute2 (Add2 i j) = i+j
+  show2 (Add2 x y) = show x ++ "+" ++ show y
 
 instance Operation2 Subtract2 where
   compute2 (Subtract2 i j) = i-j
+  show2 (Subtract2 x y) = show x ++ "-" ++ show y
 
 instance Operation2 Multiply2 where
   compute2 (Multiply2 i j) = i*j
-
-show2 :: Operation2 op => op -> String
-show2 op = show (compute2 op)
-
+  show2 (Multiply2 x y) = show x ++ "*" ++ show y
 
 ------------------------------------------------------------------------------
 -- Ex 9: validating passwords. Below you'll find a type
@@ -261,7 +272,12 @@ data PasswordRequirement =
   deriving Show
 
 passwordAllowed :: String -> PasswordRequirement -> Bool
-passwordAllowed = todo
+passwordAllowed password requirement = case requirement of
+      MinimumLength n       -> length password >= n
+      ContainsSome string   -> any (`elem` password) string
+      DoesNotContain string -> not (any (`elem` password) string)
+      And req1 req2         -> passwordAllowed password req1 && passwordAllowed password req2
+      Or req1 req2          -> passwordAllowed password req1 || passwordAllowed password req2
 
 ------------------------------------------------------------------------------
 -- Ex 10: a DSL for simple arithmetic expressions with addition and
@@ -283,17 +299,24 @@ passwordAllowed = todo
 --     ==> "(3*(1+1))"
 --
 
-data Arithmetic = Todo
+data Arithmetic = Literal Integer | Operation String Arithmetic Arithmetic
   deriving Show
 
 literal :: Integer -> Arithmetic
-literal = todo
+literal n = Literal n
 
 operation :: String -> Arithmetic -> Arithmetic -> Arithmetic
-operation = todo
-
+operation op a1 a2 = Operation op a1 a2
+   
 evaluate :: Arithmetic -> Integer
-evaluate = todo
+evaluate (Literal n) = n
+evaluate (Operation op a1 a2)
+  | op == "+" = evaluate a1 + evaluate a2
+  | op == "*" = evaluate a1 * evaluate a2
+
 
 render :: Arithmetic -> String
-render = todo
+render (Literal n) = show n
+render (Operation op a1 a2)
+  | op == "+" = "(" ++ render a1 ++ "+" ++ render a2 ++ ")"
+  | op == "*" = "(" ++ render a1 ++ "*" ++ render a2 ++ ")"
